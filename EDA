@@ -1,0 +1,102 @@
+---
+title: "ADS506 Project EDA"
+author: "Madeline Chang"
+date: "October 28, 2024"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r,warning=FALSE, message=FALSE}
+library(fpp3)
+library(gt)
+library(zoo)
+library(feasts)
+library(tidyverse)
+library(ggfortify)
+library(readxl)
+library(lubridate)
+library(forecast)
+library(tibbletime)
+set.seed(506)
+```
+
+## Data Source
+
+This dataset "Metro Interstate Traffic Volume" was downloaded from the UCI Repository, and studies traffic on the I-94 westbound highway between Minneapolis and St. Paul, Minnesota. The data is available in a single .csv file. The dataset covers October 2, 2012 at 9:00AM CST to September 30, 2018 at 11:00PM CST. This dataset can be found at [this link](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume).
+
+## Importing the Data
+
+```{r}
+traffic<- read_csv('/Users/mtc/ADS/ADS 506/Homework/Module 1/Metro_Interstate_Traffic_Volume.csv')
+head(traffic)
+
+traffic_f<- tibble(traffic %>%
+  mutate(temp = (temp * (9/5))-459.67), # changing unit of temperature to Fahrenheit
+        time = hms(str_extract(date_time, "\\d+[[::punct::]]\\d+[[::punct::]]\\d+"))
+)
+```
+
+
+## Training and Validation Split
+
+```{r}
+traffic_agg<- traffic_f %>%
+    mutate(date_time = as.Date(date_time)) %>%
+  group_by(date_time) %>%
+  mutate(max = max(traffic_volume)) %>%
+  ungroup() %>%
+  filter(traffic_volume == max) %>%
+  select(!max)
+```
+
+```{r}
+traffic_train<- traffic_f%>%
+  as_tbl_time(index = date_time) %>%
+  filter_time('2018-01-01' ~ '2018-08-31') %>%
+  filter(time == '8H 0M 0S') %>%
+  mutate(date_time = as.Date(date_time)) %>%
+  distinct(date_time, .keep_all = TRUE)
+
+traffic_val <- traffic_f %>%
+  as_tbl_time(index = date_time) %>%
+  filter_time('2018-09-01' ~ 'end') %>%
+  filter(time == '8H 0M 0S') %>%
+  mutate(date_time = as.Date(date_time)) %>%
+  distinct(date_time, .keep_all = TRUE)
+```
+
+```{r}
+min(traffic_train$traffic_volume)
+
+traffic_train %>% 
+  filter(traffic_volume < 1000) 
+```
+
+
+## Time Series Model Fit
+
+```{r}
+train_ts<- traffic_train %>%
+  as_tsibble(index = date_time) %>%
+  tsibble::fill_gaps(traffic_volume = mean(traffic_volume)) 
+```
+
+
+```{r}
+ts_2<- train_ts %>%
+  model(nan = ETS(traffic_volume~trend("A")),
+        naa = ETS(traffic_volume~ trend("A") + season("A")),
+        nmm = ETS(traffic_volume~ trend("M") + season("M")))
+
+ts2_fit <- ts_2 %>%
+  forecast(h = 30)
+
+autoplot(ts2_fit) +
+  labs(title = "Traffic Volume",
+       x = "Date",
+       y = "Traffic Volume at 8:00AM") +
+  geom_line(data = traffic_val, aes(x = date_time, y = traffic_volume), color = 'black') +
+  facet_wrap(~.model)
+```
