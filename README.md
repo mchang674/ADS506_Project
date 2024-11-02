@@ -9,4 +9,4 @@ Objective
 Perform EDA, study trends in traffic volume, and complete time series analysis on the data.
 
 Data
-[(https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)]
+[https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume]
