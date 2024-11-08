@@ -1,0 +1,248 @@
+---
+title: "ADS506 Assignment 1.2- Traffic on I-94 in Minnesota"
+author: "Madeline Chang"
+date: "October 28, 2024"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r,warning=FALSE, message=FALSE}
+library(fpp3)
+library(gt)
+library(zoo)
+library(feasts)
+library(tidyverse)
+library(ggfortify)
+library(readxl)
+library(lubridate)
+library(forecast)
+library(tibbletime)
+library(mosaic)
+set.seed(506)
+```
+
+## Data Source
+
+This dataset "Metro Interstate Traffic Volume" was downloaded from the UCI Repository, and studies traffic on the I-94 westbound highway between Minneapolis and St. Paul, Minnesota. The data is available in a single .csv file. The dataset covers October 2, 2012 at 9:00AM CST to September 30, 2018 at 11:00PM CST. This dataset can be found at [this link](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume).
+
+## Importing the Data
+
+```{r}
+traffic<- read_csv('/Users/mtc/ADS/ADS 506/Homework/Module 1/Metro_Interstate_Traffic_Volume.csv')
+head(traffic)
+
+traffic_f<- tibble(traffic %>%
+  mutate(temp = (temp * (9/5))-459.67), # changing unit of temperature to Fahrenheit
+        time = hms(str_extract(date_time, "\\d+[[::punct::]]\\d+[[::punct::]]\\d+")),
+        date = as.Date(date_time),
+        is_holiday = as.factor(ifelse(holiday == 'None', 0, 1))
+)
+
+traffic_f %>%
+  group_by(weather_main) %>%
+  summarise(n = n())
+```
+
+
+```{r}
+traffic_f %>%
+  ggplot() +
+    geom_bar(aes(x = weather_main)) +
+    labs(title = "Weather Conditions in Dataset",
+         x = "Weather Conditions",
+         y = "Count") +
+    coord_flip()
+
+
+traffic_f %>%
+  filter(weather_main == "Thunderstorm" | weather_main == "Drizzle" | weather_main == "Rain" | weather_main == "Mist") %>%
+  ggplot() +
+    geom_bar(aes(x = weather_description)) +
+    labs(title = "Rainy Conditions in Dataset",
+         x = "Rainy Conditions",
+         y = "Count") +
+    coord_flip()
+
+
+traffic_f %>%
+  filter(weather_main == "Clouds") %>%
+  ggplot() +
+    geom_bar(aes(x = weather_description)) +
+    labs(title = "Cloudy Conditions in Dataset",
+         x = "Cloudy Conditions",
+         y = "Count") +
+    coord_flip()
+
+```
+
+
+```{r}
+traffic_f %>%
+  ggplot() +
+  geom_bar(aes(x = is_holiday)) +
+  labs(title = "Holiday Status",
+       x = "Holiday Status",
+       y = "Count")
+```
+
+
+
+```{r}
+
+favstats(~traffic_f$temp)
+
+favstats(~traffic_f$rain_1h)
+
+favstats(~traffic_f$snow_1h)
+
+favstats(~traffic_f$clouds_all)
+
+favstats(~traffic_f$traffic_volume)
+
+favstats(traffic_volume~ time@hour, data = traffic_f)
+
+```
+
+
+```{r}
+ggplot(data = traffic_f) +
+  geom_bar(aes(x = traffic_volume)) +
+  xlab("Traffic Volume")
+
+traffic_f %>%
+  filter(temp > -100) %>%
+  ggplot() +
+  geom_point(aes(x = temp, y = traffic_volume), alpha = .5) +
+  labs(title = "Temperature versus Traffic Volume",
+       x = "Temperature (F)",
+       y = "Traffic Volume")
+
+traffic_f %>%
+  filter(rain_1h <2500 & rain_1h > 0) %>%
+  ggplot() +
+  geom_point(aes(x = rain_1h, y = traffic_volume)) +
+  labs(title = "Rainfall versus Traffic Volume",
+       x = "Rainfall (mm) in 1 Hour",
+       y = "Traffic Volume")
+
+
+traffic_f %>%
+  filter(snow_1h >0) %>%
+  ggplot() +
+  geom_point(aes(x = snow_1h, y = traffic_volume))+
+  labs(title = "Snowfall versus Traffic Volume",
+       x = "Snowfall (mm) in 1 Hour",
+       y = "Traffic Volume")
+```
+
+```{r}
+traffic_f %>%
+  filter(time@hour == 8 | time@hour == 9 | time@hour == 10 | time@hour == 11) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic from 08:00 to 10:00",
+       x = "Traffic Volume") +
+  facet_wrap(~time@hour, ncol = 1)
+
+
+traffic_f %>%
+  filter(time@hour == 8) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 08:00AM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 9) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 09:00AM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 10) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 10:00AM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 11) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 11:00AM",
+       x = "Traffic Volume")
+```
+
+
+```{r}
+traffic_f %>%
+  filter(time@hour == 16| time@hour == 17 | time@hour == 18 | time@hour == 19) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic from 16:00 to 19:00",
+       x = "Traffic Volume") +
+  facet_wrap(~time@hour, ncol = 1)
+
+traffic_f %>%
+  filter(time@hour == 16) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 04:00PM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 17) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 05:00PM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 18) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 06:00PM",
+       x = "Traffic Volume")
+
+traffic_f %>%
+  filter(time@hour == 19) %>%
+  ggplot(aes(x = traffic_volume)) +
+  geom_histogram(binwidth = 10) +
+  labs(title = "Traffic Volume at 7:00PM",
+       x = "Traffic Volume")
+```
+
+
+```{r}
+traffic_f %>%
+  filter(date > '2018-08-31') %>%
+  ggplot(aes(x = date_time, y = traffic_volume)) +
+  geom_point() +
+  geom_smooth(span = 0.02) +
+  labs(title = "September 2018 Traffic Volume",
+       x = "Date",
+       y = "Traffic Volume")
+
+
+traffic_f %>%
+  filter(date > '2018-07-31' & date < '2018-09-01') %>%
+  ggplot(aes(x = date_time, y = traffic_volume)) +
+  geom_point() +
+  geom_smooth(span = 0.02) +
+  labs(title = "August 2018 Traffic Volume",
+       x = "Date",
+       y = "Traffic Volume")
+
+traffic_f %>%
+  filter(date > '2018-06-30' & date < '2018-08-01') %>%
+  ggplot(aes(x = date_time, y = traffic_volume)) +
+  geom_point() +
+  geom_smooth(span = 0.02) +
+  labs(title = "July 2018 Traffic Volume",
+       x = "Date",
+       y = "Traffic Volume")
+```
+
