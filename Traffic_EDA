@@ -37,7 +37,8 @@ traffic_f<- tibble(traffic %>%
   mutate(temp = (temp * (9/5))-459.67), # changing unit of temperature to Fahrenheit
         time = hms(str_extract(date_time, "\\d+[[::punct::]]\\d+[[::punct::]]\\d+")),
         date = as.Date(date_time),
-        is_holiday = as.factor(ifelse(holiday == 'None', 0, 1))
+        is_holiday = as.factor(ifelse(holiday == 'None', 0, 1)),
+        day = factor(weekdays(date), levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))
 )
 
 traffic_f %>%
@@ -91,17 +92,26 @@ traffic_f %>%
 
 ```{r}
 
-favstats(~traffic_f$temp)
+favstats(~traffic_f$temp)%>%
+  gt::gt()
 
-favstats(~traffic_f$rain_1h)
+favstats(~traffic_f$rain_1h)%>%
+  gt::gt()
 
-favstats(~traffic_f$snow_1h)
+favstats(~traffic_f$snow_1h)%>%
+  gt::gt()
 
-favstats(~traffic_f$clouds_all)
+favstats(~traffic_f$clouds_all)%>%
+  gt::gt()
 
-favstats(~traffic_f$traffic_volume)
+favstats(~traffic_f$traffic_volume)%>%
+  gt::gt()
 
-favstats(traffic_volume~ time@hour, data = traffic_f)
+favstats(traffic_volume~ time@hour, data = traffic_f)%>%
+  gt::gt()
+
+favstats(traffic_volume~ day, data = traffic_f) %>%
+  gt::gt()
 
 ```
 
@@ -142,7 +152,7 @@ traffic_f %>%
   filter(time@hour == 8 | time@hour == 9 | time@hour == 10 | time@hour == 11) %>%
   ggplot(aes(x = traffic_volume)) +
   geom_histogram(binwidth = 10) +
-  labs(title = "Traffic from 08:00 to 10:00",
+  labs(title = "Traffic from 08:00 to 11:00",
        x = "Traffic Volume") +
   facet_wrap(~time@hour, ncol = 1)
 
@@ -158,21 +168,21 @@ traffic_f %>%
   filter(time@hour == 9) %>%
   ggplot(aes(x = traffic_volume)) +
   geom_histogram(binwidth = 10) +
-  labs(title = "Traffic Volume at 09:00AM",
+  labs(title = "Traffic Volume at 09:00",
        x = "Traffic Volume")
 
 traffic_f %>%
   filter(time@hour == 10) %>%
   ggplot(aes(x = traffic_volume)) +
   geom_histogram(binwidth = 10) +
-  labs(title = "Traffic Volume at 10:00AM",
+  labs(title = "Traffic Volume at 10:00",
        x = "Traffic Volume")
 
 traffic_f %>%
   filter(time@hour == 11) %>%
   ggplot(aes(x = traffic_volume)) +
   geom_histogram(binwidth = 10) +
-  labs(title = "Traffic Volume at 11:00AM",
+  labs(title = "Traffic Volume at 11:00",
        x = "Traffic Volume")
 ```
 
@@ -245,4 +255,15 @@ traffic_f %>%
        x = "Date",
        y = "Traffic Volume")
 ```
+
+
+```{r}
+traffic_f %>%
+  filter(date > '2014-12-31' & date < '2015-06-11') # shows gap from January 1, 2015 to June 10, 2015
+```
+
+
+Notes
+
+Holiday status is only given on midnight of a holiday. Would need to either carry down the holiday name, or have some logic about "if holiday is not null on this specific date"
 
