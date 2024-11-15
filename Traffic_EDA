@@ -115,23 +115,34 @@ favstats(traffic_volume~ day, data = traffic_f) %>%
 
 ```
 
+```{r}
+traffic_f %>%
+  filter(month(date) == 1) %>%
+  summarise(median = median(temp))
+
+traffic_f %>%
+  filter(weather_description == 'very heavy rain' & rain_1h < 2500) %>%
+  summarise(med = median(rain_1h))
+
+
+traffic_f <- traffic_f %>%
+  mutate(temp = ifelse(temp < -100, 20.6, temp),
+         rain_1h = ifelse(rain_1h > 2500, 21.4, rain_1h))
+```
+
 
 ```{r}
 ggplot(data = traffic_f) +
   geom_bar(aes(x = traffic_volume)) +
   xlab("Traffic Volume")
 
-traffic_f %>%
-  filter(temp > -100) %>%
-  ggplot() +
+  ggplot(data = traffic_f) +
   geom_point(aes(x = temp, y = traffic_volume), alpha = .5) +
   labs(title = "Temperature versus Traffic Volume",
        x = "Temperature (F)",
        y = "Traffic Volume")
 
-traffic_f %>%
-  filter(rain_1h <2500 & rain_1h > 0) %>%
-  ggplot() +
+  ggplot(data= traffic_f) +
   geom_point(aes(x = rain_1h, y = traffic_volume)) +
   labs(title = "Rainfall versus Traffic Volume",
        x = "Rainfall (mm) in 1 Hour",
