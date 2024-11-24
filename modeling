@@ -1,0 +1,87 @@
+---
+title: "ADS506 Assignment 1.2- Traffic on I-94 in Minnesota"
+author: "Madeline Chang"
+date: "November 24, 2024"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r,warning=FALSE, message=FALSE}
+library(fpp3)
+library(gt)
+library(tidyverse)
+library(ggfortify)
+library(lubridate)
+library(tibbletime)
+library(mosaic)
+library(fabletools)
+set.seed(506)
+```
+
+
+## Importing the Data
+
+```{r}
+traffic<- read_csv('/Users/mtc/ADS/ADS 506/Homework/Module 1/Metro_Interstate_Traffic_Volume.csv')
+head(traffic)
+
+traffic_f<- tibble(traffic %>%
+  mutate(temp = (temp * (9/5))-459.67, # changing unit of temperature to Fahrenheit
+        time = hms(str_extract(date_time, "\\d+[[::punct::]]\\d+[[::punct::]]\\d+")),
+        time = replace(time, is.na(time), period(hours = 0, minutes = 0, seconds = 0)),
+        date = as.Date(date_time),
+        is_holiday = as.factor(ifelse(holiday == 'None', 0, 1)),
+        day = factor(weekdays(date), levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
+)
+) %>%
+  group_by(date_time) %>%
+  distinct(traffic_volume, .keep_all = TRUE) %>%
+  ungroup()
+
+
+traffic_f <- traffic_f %>%
+  group_by(date) %>%
+  # Extend the holiday value to all hours of the day
+  mutate(holiday = ifelse(holiday == "None", NA, holiday),  # Convert "None" to NA for proper propagation
+         holiday = first(na.omit(holiday))) %>%
+  # Replace NA values with "None" if there were no holidays for the day
+  mutate(holiday = ifelse(is.na(holiday), "None", holiday)) %>%
+  ungroup()
+
+
+```
+
+
+```{r}
+ggplot(data = traffic_2018) +
+  geom_line(aes(x = date_time, y = traffic_volume))
+```
+
+
+```{r}
+traffic_fit<- traffic_f %>%
+  as_tsibble(., index = date_time)%>%
+  filter_index('2017-09-24'~'2018-09-23') %>%
+  tsibble::fill_gaps()%>%
+  fabletools::model(
+    model_2 = ARIMA(traffic_volume ~ 0 + 
+                      pdq(0, 1, 1) + PDQ(0, 1, 0)),
+    model_3 = ARIMA(traffic_volume~ 0 +
+                      date_time + holiday + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
+    model_4 = ARIMA(traffic_volume~ 0 +
+                      date_time + holiday + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
+    model_5 = ARIMA(traffic_volume~ 0 +
+                      date_time + weather_main + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
+  )
+
+traffic_naive<- traffic_f %>%
+  as_tsibble(., index = date_time)%>%
+  filter_index('2017-09-24'~'2018-09-23') %>%
+  tsibble::fill_gaps()%>%
+  fabletools::model(
+    model_1 = ARIMA(traffic_volume)
+  )
+```
+
