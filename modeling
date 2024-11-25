@@ -34,6 +34,8 @@ traffic_f<- tibble(traffic %>%
         date = as.Date(date_time),
         is_holiday = as.factor(ifelse(holiday == 'None', 0, 1)),
         day = factor(weekdays(date), levels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")),
+        temp = ifelse(temp < -100, 20.6, temp),
+        rain_1h = ifelse(rain_1h > 2500, 21.4, rain_1h)
 )
 ) %>%
   group_by(date_time) %>%
@@ -48,40 +50,92 @@ traffic_f <- traffic_f %>%
          holiday = first(na.omit(holiday))) %>%
   # Replace NA values with "None" if there were no holidays for the day
   mutate(holiday = ifelse(is.na(holiday), "None", holiday)) %>%
-  ungroup()
+  ungroup() %>%
+  filter(date >= '2015-06-26') %>%
+  as_tsibble(., index = date_time) 
 
 
 ```
 
+```{r}
+traffic_f |>
+  gg_tsdisplay(difference(traffic_volume, 24, differences = 1),
+               plot_type='partial') +
+  labs(title="Seasonally differenced", y="")
+```
+
+
 
 ```{r}
-ggplot(data = traffic_2018) +
-  geom_line(aes(x = date_time, y = traffic_volume))
+traffic_train<- traffic_f %>%
+  filter_index('2015-06-26'~'2018-08-31') %>%
+  tsibble::fill_gaps()
+
+traffic_val<- traffic_f %>%
+  filter_index('2018-09-01'~.) %>%
+  tsibble::fill_gaps()
 ```
 
 
 ```{r}
-traffic_fit<- traffic_f %>%
-  as_tsibble(., index = date_time)%>%
-  filter_index('2017-09-24'~'2018-09-23') %>%
-  tsibble::fill_gaps()%>%
+traffic_fit<- traffic_train %>%
   fabletools::model(
     model_2 = ARIMA(traffic_volume ~ 0 + 
                       pdq(0, 1, 1) + PDQ(0, 1, 0)),
-    model_3 = ARIMA(traffic_volume~ 0 +
+    model_3 = ARIMA(traffic_volume~ 1+
                       date_time + holiday + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
-    model_4 = ARIMA(traffic_volume~ 0 +
+    model_4 = ARIMA(traffic_volume~ 1+
                       date_time + holiday + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
-    model_5 = ARIMA(traffic_volume~ 0 +
+    model_5 = ARIMA(traffic_volume~ 1+
                       date_time + weather_main + pdq(1, 1, 0)+ PDQ(0, 1, 0)),
   )
 
-traffic_naive<- traffic_f %>%
-  as_tsibble(., index = date_time)%>%
-  filter_index('2017-09-24'~'2018-09-23') %>%
-  tsibble::fill_gaps()%>%
+traffic_naive<- traffic_train %>%
   fabletools::model(
     model_1 = ARIMA(traffic_volume)
   )
 ```
+
+
+```{r}
+traffic_fit %>%
+  accuracy()  # best RMSE is model2
+
+traffic_naive %>%
+  accuracy
+```
+
+
+
+```{r}
+traffic_f<- traffic_f %>%
+  tsibble::fill_gaps()
+
+traffic_f2<- traffic_f %>%
+  fabletools::model(
+    model_2 = ARIMA(traffic_volume ~ 0 + 
+                      pdq(0, 1, 1) + PDQ(0, 1, 0))
+  )
+
+traffic_n2<- traffic_f %>%   
+  fabletools::model(
+    model_1 = ARIMA(traffic_volume)
+  )
+```
+
+```{r}
+traffic_f2 %>%
+  accuracy()
+
+traffic_n2 %>%
+  accuracy()
+```
+
+
+```{r}
+traffic_n2 %>%
+  forecast() %>%
+  autoplot()
+```
+
 
