@@ -53,25 +53,6 @@ This project extensively uses the following Python libraries:
 - **Time Series Analysis**: `statsmodels.tsa`, `ARIMA`, `LSTM`
 
 ---
-
-## Notable Findings from EDA
-- **Hourly Trends**:
-  - Peak traffic during morning (6-9 AM) and evening (4-6 PM) rush hours.
-  - Lowest traffic volume observed between 2-4 AM.
-- **Day of the Week**:
-  - Higher traffic volumes on weekdays, with peaks on Thursdays and Fridays.
-  - Lower traffic volumes on weekends, especially Sundays.
-- **Weather Effects**:
-  - Adverse weather conditions (e.g., thunderstorms, squalls) correlate with lower traffic volumes.
-  - Clear weather conditions result in higher traffic counts.
-- **Holiday Impact**:
-  - Significant drop in traffic on holidays like Christmas, Thanksgiving, and State Fair days.
-  - Holidays like Independence Day and Memorial Day see relatively higher traffic due to recreational travel.
-- **Seasonal Variations**:
-  - Traffic volume peaks in spring and summer (May to October), with June as the highest month.
-  - Winter months like January and December see the lowest volumes.
-
----
 ## Exploratory Data Analysis (EDA)
 
 Key insights from the initial EDA include:
