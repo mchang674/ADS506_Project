@@ -1,92 +1,126 @@
-# ADS506 Project  
-**Team 2, ADS 506**  
+# ADS506 Project
 
-## Metro Interstate Traffic Volume Forecasting  
+## Team 2, ADS 506
 
-### The Dataset  
-The dataset used in this project is the "Metro Interstate Traffic Volume" dataset from the UC Irvine Machine Learning Repository. It contains 48,204 observations and 8 columns, covering the period from **2012 to 2018**.  
+### Metro Interstate Traffic Volume Forecasting
 
-- **Source**: [Metro Interstate Traffic Volume Dataset](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume)
+---
+
+## The Dataset
+The dataset used in this project is the **"Metro Interstate Traffic Volume"** dataset from the [UC Irvine Machine Learning Repository](https://archive.ics.uci.edu/dataset/492/metro+interstate+traffic+volume). It contains **48,204 observations** and **8 columns** covering the period from **2012 to 2018**.
+
+### Key Dataset Details:
+- **Time Range Used for Modeling**: Data from **June 11, 2015** to **September 30, 2018**.
 - **Features**:
-  - **Date/Time**: Hourly timestamp for traffic volume counts.
-  - **Traffic Volume**: Count of vehicles passing a section of Interstate 94.
-  - **Weather Attributes**: Includes temperature, precipitation, cloud cover.
-  - **Holiday Indicators**: Binary flag for holidays.
-  - **Seasonal/Temporal Data**: Hour, day, and month of observation.
+  - `date_time`: Timestamp of each traffic count.
+  - `traffic_volume`: Hourly vehicle counts.
+  - `temp`: Hourly temperature in Fahrenheit.
+  - `rain_1h`: Rain volume in the last hour.
+  - `snow_1h`: Snow volume in the last hour.
+  - `clouds_all`: Cloud coverage percentage.
+  - `holiday`: Indicator of whether the day is a holiday.
+  - `weather_main`: General weather condition (e.g., clear, fog, etc.).
+  - `weather_description`: Detailed weather conditions (e.g., light rain, heavy snow, etc.).
 
 ---
 
-### Objective  
-This project aims to:
-1. Perform exploratory data analysis (EDA) to study trends in traffic volume.
-2. Analyze the impact of weather and temporal factors on traffic.
-3. Develop advanced time series models for accurate traffic forecasting.
+## Objective
+The primary objectives of this project are to:
+1. **Perform Exploratory Data Analysis (EDA)**:
+   - Study trends in traffic volume across time, weather conditions, and holidays.
+   - Identify seasonal and temporal patterns in traffic.
+2. **Complete Time Series Analysis**:
+   - Build predictive models to forecast traffic volume.
+   - Evaluate models using metrics like MAE, RMSE, and R².
 
 ---
 
-### Project Details  
+## Data Information
 
-#### **Motivation**  
-Urban mobility challenges demand accurate traffic prediction systems to:
-- Reduce commute stress and congestion.
-- Enable efficient travel planning.
-- Support urban planning decisions for sustainable city infrastructure.
+### Purpose
+To create an advanced traffic forecasting tool for commuters and urban planners by leveraging historical traffic data, meteorological conditions, and time-specific factors.
 
-#### **Libraries Used**  
-The project leverages the following Python libraries:  
-- **Data Analysis**: `pandas`, `numpy`, `seaborn`, `matplotlib`
-- **Machine Learning**: `scikit-learn`, `statsmodels`
-- **Deep Learning**: `keras`, `tensorflow`
-- **Time Series**: `ARIMA`, `LSTM`
+### Background
+Urban congestion is a critical problem affecting productivity and quality of life. By accurately predicting traffic volumes, this project aims to:
+- Help commuters plan their travel times effectively.
+- Assist traffic authorities in developing long-term strategies for traffic management.
 
-#### **Project Workflow**  
-1. **Exploratory Data Analysis**:
-   - Analyzed traffic patterns across hours, days, months, and weather conditions.
-   - Key Insights:
-     - Peak traffic occurs during morning (6-9 AM) and evening (4-6 PM) rush hours.
-     - Traffic is lower during adverse weather and holidays.
-     - Seasonal variations show higher traffic in spring/summer (May-October).
-2. **Model Development**:
-   - Baseline Models: Linear Regression, Gradient Boosting.
-   - Time-Series Models: ARIMA, LSTM, and Hybrid ARIMA-LSTM.
-   - Evaluation Metrics: MAE, RMSE, R².
-3. **Visualization**:
-   - Time series plots of actual vs. predicted traffic volumes.
-   - Comparative analysis of model performance.
+### Libraries Used
+This project extensively uses the following Python libraries:
+- **Data Processing**: `pandas`, `numpy`
+- **Visualization**: `matplotlib`, `seaborn`
+- **Machine Learning**: `scikit-learn`, `keras`, `statsmodels`
+- **Time Series Analysis**: `statsmodels.tsa`, `ARIMA`, `LSTM`
 
 ---
 
-### Results  
+## Notable Findings from EDA
+- **Hourly Trends**:
+  - Peak traffic during morning (6-9 AM) and evening (4-6 PM) rush hours.
+  - Lowest traffic volume observed between 2-4 AM.
+- **Day of the Week**:
+  - Higher traffic volumes on weekdays, with peaks on Thursdays and Fridays.
+  - Lower traffic volumes on weekends, especially Sundays.
+- **Weather Effects**:
+  - Adverse weather conditions (e.g., thunderstorms, squalls) correlate with lower traffic volumes.
+  - Clear weather conditions result in higher traffic counts.
+- **Holiday Impact**:
+  - Significant drop in traffic on holidays like Christmas, Thanksgiving, and State Fair days.
+  - Holidays like Independence Day and Memorial Day see relatively higher traffic due to recreational travel.
+- **Seasonal Variations**:
+  - Traffic volume peaks in spring and summer (May to October), with June as the highest month.
+  - Winter months like January and December see the lowest volumes.
 
+---
+## Exploratory Data Analysis (EDA)
+
+Key insights from the initial EDA include:
+1. **Traffic Volume Trends**:
+   - Peaks during morning (6-9 AM) and evening (4-6 PM) rush hours.
+   - Lowest volumes observed between 2-4 AM.
+2. **Day of the Week**:
+   - Higher volumes on weekdays, particularly on Thursdays and Fridays.
+   - Lower volumes on Sundays and holidays.
+3. **Seasonal Trends**:
+   - Traffic volume peaks during spring and summer (May to October), with a maximum in June.
+   - Declines during winter months (December to February).
+4. **Weather Impacts**:
+   - Clear and cloudy conditions are associated with higher traffic.
+   - Adverse weather, such as thunderstorms and snow, correlates with lower traffic.
+
+## Modeling
+### Models Implemented:
+1. **Linear Regression**:
+   - Baseline model for traffic forecasting.
+2. **Gradient Boosting**:
+   - Ensemble method for improved performance.
+3. **ARIMA**:
+   - Classical time-series forecasting technique.
+4. **LSTM**:
+   - Deep learning-based model for capturing temporal dependencies.
+5. **Hybrid ARIMA-LSTM**:
+   - Combines ARIMA's trend forecasting with LSTM's nonlinear feature capture for enhanced accuracy.
+
+### Results Summary:
 | Model                  | MAE       | RMSE      | R²       |
 |------------------------|-----------|-----------|----------|
 | Linear Regression      | 384.18    | 493.01    | 0.945    |
 | Gradient Boosting      | 245.79    | 313.80    | 0.978    |
 | ARIMA                  | 319.97    | 380.02    | 0.967    |
 | LSTM                   | 155.24    | 187.54    | 0.992    |
-| Hybrid ARIMA-LSTM      | **123.86**| **153.26**| **0.995**|
+| Hybrid ARIMA-LSTM      | **123.86**| **153.26**| **0.995** |
 
 ---
 
-### Conclusion  
-
-This project demonstrates the use of machine learning and time-series analysis to forecast traffic volumes with high accuracy. The insights and models developed here can be extended to real-time traffic prediction systems, assisting commuters and city planners alike.
-
----
-
-### Future Scope  
-
-- Integration with real-time traffic APIs for dynamic forecasting.
-- Extending the analysis with additional features such as construction updates.
-- Exploring alternative hybrid modeling approaches.
+## Conclusion
+The **Hybrid ARIMA-LSTM** model demonstrated the best performance, achieving the lowest error metrics and the highest R² score. This forecasting system can:
+- Empower commuters to make better travel decisions.
+- Support urban planners in designing data-driven strategies for efficient traffic management.
 
 ---
 
-### Project Contributors  
-- Archana Suresh Patil 
-- Jason Tong  
-- Madeline Chang  
+## Contributors
 
----
-
-
+- **Archana Suresh Patil** 
+- **Jason Tong**
+- **Madeline Chang**
