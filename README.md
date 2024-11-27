@@ -68,8 +68,23 @@ Key insights from the initial EDA include:
 4. **Weather Impacts**:
    - Clear and cloudy conditions are associated with higher traffic.
    - Adverse weather, such as thunderstorms and snow, correlates with lower traffic.
+   
+## Preprocessing
 
+1. **Date and Time Handling**:
+   - Converted timestamps to datetime format.
+   - Extracted day, hour, and month as separate features.
+2. **Temperature Conversion**:
+   - Converted temperature from Kelvin to Fahrenheit.
+3. **Feature Engineering**:
+   - Created binary indicators for weekends, holidays, and rush hours.
+4. **Train-Test Split**:
+   - Training: 70% of the dataset.
+   - Validation: 15%.
+   - Testing: 15%.
+  
 ## Modeling
+
 ### Models Implemented:
 1. **Linear Regression**:
    - Baseline model for traffic forecasting.
